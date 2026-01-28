@@ -13,28 +13,22 @@
             <form method="GET" action="{{ route('store.index') }}" class="bg-neutral-900 rounded-xl p-5 lg:sticky lg:top-8">
                 <h2 class="text-white font-semibold mb-5">Filters</h2>
 
-                <!-- Category Filter (Mocked/Disabled) -->
+                <!-- Category Filter -->
                 <div class="mb-6">
                     <h3 class="text-sm text-white font-semibold mb-3">Category</h3>
                     <div class="space-y-2">
-                        <label class="flex items-center opacity-50 cursor-not-allowed">
-                            <input type="checkbox" disabled class="w-4 h-4 rounded bg-neutral-800 border-neutral-700 text-white focus:ring-neutral-500 focus:ring-offset-neutral-900">
-                            <span class="ml-2 text-sm text-neutral-400">Electronics</span>
-                        </label>
-                        <label class="flex items-center opacity-50 cursor-not-allowed">
-                            <input type="checkbox" disabled class="w-4 h-4 rounded bg-neutral-800 border-neutral-700 text-white focus:ring-neutral-500 focus:ring-offset-neutral-900">
-                            <span class="ml-2 text-sm text-neutral-400">Clothing</span>
-                        </label>
-                        <label class="flex items-center opacity-50 cursor-not-allowed">
-                            <input type="checkbox" disabled class="w-4 h-4 rounded bg-neutral-800 border-neutral-700 text-white focus:ring-neutral-500 focus:ring-offset-neutral-900">
-                            <span class="ml-2 text-sm text-neutral-400">Home & Garden</span>
-                        </label>
-                        <label class="flex items-center opacity-50 cursor-not-allowed">
-                            <input type="checkbox" disabled class="w-4 h-4 rounded bg-neutral-800 border-neutral-700 text-white focus:ring-neutral-500 focus:ring-offset-neutral-900">
-                            <span class="ml-2 text-sm text-neutral-400">Sports</span>
-                        </label>
+                        @foreach($categories as $category)
+                            <label class="flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    name="categories[]" 
+                                    value="{{ $category->id }}"
+                                    {{ in_array($category->id, (array) request('categories', [])) ? 'checked' : '' }}
+                                    class="w-4 h-4 rounded bg-neutral-800 border-neutral-700 text-white focus:ring-neutral-500 focus:ring-offset-neutral-900">
+                                <span class="ml-2 text-sm text-neutral-400">{{ $category->name }}</span>
+                            </label>
+                        @endforeach
                     </div>
-                    <p class="text-xs text-neutral-500 mt-2">Categories coming soon</p>
                 </div>
 
                 <!-- Price Range Filter -->
@@ -124,6 +118,11 @@
                         @if(request('max_price'))
                             <input type="hidden" name="max_price" value="{{ request('max_price') }}">
                         @endif
+                        @if(request('categories'))
+                            @foreach((array) request('categories') as $catId)
+                                <input type="hidden" name="categories[]" value="{{ $catId }}">
+                            @endforeach
+                        @endif
 
                         <button type="submit" class="px-4 py-2.5 bg-neutral-800 text-white font-medium text-sm rounded-lg hover:bg-neutral-700 transition">
                             Search
@@ -133,12 +132,22 @@
             </div>
 
             <!-- Active Filters Display -->
-            @if(request('search') || request('min_price') || request('max_price'))
+            @if(request('search') || request('min_price') || request('max_price') || request('categories'))
                 <div class="flex flex-wrap gap-2 mb-6">
                     @if(request('search'))
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-neutral-800 text-neutral-300 border border-neutral-700">
                             Search: "{{ request('search') }}"
                             <a href="{{ route('store.index', array_merge(request()->except('search'), [])) }}" class="ml-2 text-neutral-500 hover:text-white">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </a>
+                        </span>
+                    @endif
+                    @if(request('categories'))
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-neutral-800 text-neutral-300 border border-neutral-700">
+                            {{ count((array) request('categories')) }} {{ Str::plural('category', count((array) request('categories'))) }} selected
+                            <a href="{{ route('store.index', array_merge(request()->except('categories'), [])) }}" class="ml-2 text-neutral-500 hover:text-white">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
@@ -196,9 +205,12 @@
                                 </p>
 
                                 <!-- Add to Cart Button -->
-                                <button type="button" class="w-full px-4 py-2.5 bg-white text-black font-medium text-sm rounded-lg hover:bg-neutral-200 transition">
-                                    Add to Cart
-                                </button>
+                                <form action="{{ route('cart.add', $product) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="w-full px-4 py-2.5 bg-white text-black font-medium text-sm rounded-lg hover:bg-neutral-200 transition">
+                                        Add to Cart
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     @endforeach
@@ -218,13 +230,13 @@
                     </svg>
                     <h3 class="text-lg font-medium text-white mb-2">No products found</h3>
                     <p class="text-neutral-400 mb-6">
-                        @if(request('search') || request('min_price') || request('max_price'))
+                        @if(request('search') || request('min_price') || request('max_price') || request('categories'))
                             No products match your current filters.
                         @else
                             Check back soon for new products.
                         @endif
                     </p>
-                    @if(request('search') || request('min_price') || request('max_price'))
+                    @if(request('search') || request('min_price') || request('max_price') || request('categories'))
                         <a href="{{ route('store.index') }}" class="inline-flex items-center px-4 py-2.5 bg-neutral-800 text-white font-medium text-sm rounded-lg hover:bg-neutral-700 transition">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>

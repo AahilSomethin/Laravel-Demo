@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
 
@@ -61,7 +62,9 @@ class ProductController extends Controller
      */
     public function create()
     {
-        return view('admin.products.create');
+        $categories = Category::orderBy('name')->get();
+
+        return view('admin.products.create', compact('categories'));
     }
 
     /**
@@ -93,7 +96,9 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        return view('admin.products.edit', compact('product'));
+        $categories = Category::orderBy('name')->get();
+
+        return view('admin.products.edit', compact('product', 'categories'));
     }
 
     /**

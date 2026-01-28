@@ -22,6 +22,7 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'category_id' => ['required', 'exists:categories,id'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
@@ -38,6 +39,8 @@ class StoreProductRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'category_id.required' => 'Please select a category.',
+            'category_id.exists' => 'The selected category is invalid.',
             'name.required' => 'The product name is required.',
             'name.max' => 'The product name cannot exceed 255 characters.',
             'price.required' => 'The product price is required.',

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
 
 class StoreController extends Controller
@@ -11,11 +12,16 @@ class StoreController extends Controller
      */
     public function index()
     {
-        $query = Product::where('is_active', true);
+        $query = Product::with('category')->where('is_active', true);
 
         // Search by product name
         if ($search = request('search')) {
             $query->where('name', 'like', '%' . $search . '%');
+        }
+
+        // Filter by category
+        if ($categoryIds = request('categories')) {
+            $query->whereIn('category_id', (array) $categoryIds);
         }
 
         // Filter by price range
@@ -43,7 +49,8 @@ class StoreController extends Controller
         }
 
         $products = $query->paginate(12)->appends(request()->query());
+        $categories = Category::orderBy('name')->get();
 
-        return view('store.index', compact('products'));
+        return view('store.index', compact('products', 'categories'));
     }
 }

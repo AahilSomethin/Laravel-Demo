@@ -1,5 +1,22 @@
 <div class="space-y-6">
     <div>
+        <label for="category_id" class="block text-sm font-medium text-neutral-300 mb-1.5">Category</label>
+        <select name="category_id" id="category_id" required
+            class="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 text-neutral-100 rounded-lg focus:outline-none focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition appearance-none cursor-pointer"
+            style="background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23737373%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1rem;">
+            <option value="">Select a category</option>
+            @foreach($categories as $category)
+                <option value="{{ $category->id }}" {{ old('category_id', $product->category_id ?? '') == $category->id ? 'selected' : '' }}>
+                    {{ $category->name }}
+                </option>
+            @endforeach
+        </select>
+        @error('category_id')
+            <p class="text-red-400 text-sm mt-1.5">{{ $message }}</p>
+        @enderror
+    </div>
+
+    <div>
         <label for="name" class="block text-sm font-medium text-neutral-300 mb-1.5">Name</label>
         <input type="text" name="name" id="name" value="{{ old('name', $product->name ?? '') }}" required
             placeholder="Product name"
