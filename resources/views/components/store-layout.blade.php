@@ -22,15 +22,12 @@
                     <div class="flex justify-between h-16">
                         <div class="flex items-center">
                             <!-- Logo -->
-                            <a href="{{ url('/') }}" class="flex items-center">
+                            <a href="{{ route('store.index') }}" class="flex items-center">
                                 <x-application-logo class="block h-8 w-auto fill-current text-neutral-500" />
                             </a>
 
                             <!-- Navigation Links -->
                             <div class="hidden sm:flex sm:space-x-8 sm:ms-10">
-                                <a href="{{ url('/') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-neutral-400 hover:text-white transition-colors">
-                                    Home
-                                </a>
                                 <a href="{{ route('store.index') }}" class="inline-flex items-center px-1 pt-1 text-sm font-medium text-white border-b-2 border-white">
                                     Store
                                 </a>
