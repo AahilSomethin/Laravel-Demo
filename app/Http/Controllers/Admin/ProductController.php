@@ -16,7 +16,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $query = Product::query();
+        $query = Product::with('category');
 
         // Search by product name
         if ($search = request('search')) {

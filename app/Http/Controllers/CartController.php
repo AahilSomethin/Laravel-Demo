@@ -3,37 +3,26 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Services\CartService;
 use Illuminate\Http\Request;
 
 class CartController extends Controller
 {
+    public function __construct(
+        protected CartService $cartService
+    ) {}
+
     /**
      * Display the cart page.
      */
     public function index()
     {
-        $cart = session('cart', []);
-        $items = [];
-        $total = 0;
+        $cartDetails = $this->cartService->getCartWithDetails();
 
-        if (!empty($cart)) {
-            $products = Product::whereIn('id', array_keys($cart))->get()->keyBy('id');
-
-            foreach ($cart as $productId => $quantity) {
-                if ($products->has($productId)) {
-                    $product = $products[$productId];
-                    $subtotal = $product->price * $quantity;
-                    $items[] = [
-                        'product' => $product,
-                        'quantity' => $quantity,
-                        'subtotal' => $subtotal,
-                    ];
-                    $total += $subtotal;
-                }
-            }
-        }
-
-        return view('cart.index', compact('items', 'total'));
+        return view('cart.index', [
+            'items' => $cartDetails['items'],
+            'total' => $cartDetails['total'],
+        ]);
     }
 
     /**
@@ -45,15 +34,9 @@ class CartController extends Controller
             return back()->with('error', 'This product is not available.');
         }
 
-        $cart = session('cart', []);
-
-        if (isset($cart[$product->id])) {
-            $cart[$product->id]++;
-        } else {
-            $cart[$product->id] = 1;
+        if (!$this->cartService->addItem($product)) {
+            return back()->with('error', 'Maximum quantity (' . CartService::MAX_QUANTITY_PER_PRODUCT . ') reached for this product.');
         }
-
-        session(['cart' => $cart]);
 
         return back()->with('success', "{$product->name} added to cart.");
     }
@@ -64,15 +47,10 @@ class CartController extends Controller
     public function update(Request $request, Product $product)
     {
         $request->validate([
-            'quantity' => ['required', 'integer', 'min:1', 'max:99'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:' . CartService::MAX_QUANTITY_PER_PRODUCT],
         ]);
 
-        $cart = session('cart', []);
-
-        if (isset($cart[$product->id])) {
-            $cart[$product->id] = $request->quantity;
-            session(['cart' => $cart]);
-        }
+        $this->cartService->updateQuantity($product, $request->quantity);
 
         return back()->with('success', 'Cart updated.');
     }
@@ -82,12 +60,7 @@ class CartController extends Controller
      */
     public function remove(Product $product)
     {
-        $cart = session('cart', []);
-
-        if (isset($cart[$product->id])) {
-            unset($cart[$product->id]);
-            session(['cart' => $cart]);
-        }
+        $this->cartService->removeItem($product);
 
         return back()->with('success', "{$product->name} removed from cart.");
     }
@@ -97,7 +70,6 @@ class CartController extends Controller
      */
     public static function getCartCount(): int
     {
-        $cart = session('cart', []);
-        return array_sum($cart);
+        return app(CartService::class)->getCount();
     }
 }

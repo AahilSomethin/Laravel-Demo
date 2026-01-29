@@ -17,16 +17,20 @@ class Order extends Model
         'receipt_path',
     ];
 
+    protected $casts = [
+        'total_amount' => 'decimal:2',
+    ];
+
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
     /**
-     * Alias for orderItems with product eager loading.
+     * Alias for orderItems relationship.
      */
     public function items(): HasMany
     {
-        return $this->hasMany(OrderItem::class)->with('product');
+        return $this->hasMany(OrderItem::class);
     }
 }

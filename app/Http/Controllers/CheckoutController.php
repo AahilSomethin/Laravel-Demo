@@ -5,41 +5,30 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CheckoutRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
+use App\Services\CartService;
 use Illuminate\Support\Facades\DB;
 
 class CheckoutController extends Controller
 {
+    public function __construct(
+        protected CartService $cartService
+    ) {}
+
     /**
      * Display the checkout form.
      */
     public function index()
     {
-        $cart = session('cart', []);
-
-        if (empty($cart)) {
+        if ($this->cartService->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
         }
 
-        $items = [];
-        $total = 0;
+        $cartDetails = $this->cartService->getCartWithDetails();
 
-        $products = Product::whereIn('id', array_keys($cart))->get()->keyBy('id');
-
-        foreach ($cart as $productId => $quantity) {
-            if ($products->has($productId)) {
-                $product = $products[$productId];
-                $subtotal = $product->price * $quantity;
-                $items[] = [
-                    'product' => $product,
-                    'quantity' => $quantity,
-                    'subtotal' => $subtotal,
-                ];
-                $total += $subtotal;
-            }
-        }
-
-        return view('checkout.index', compact('items', 'total'));
+        return view('checkout.index', [
+            'items' => $cartDetails['items'],
+            'total' => $cartDetails['total'],
+        ]);
     }
 
     /**
@@ -47,21 +36,14 @@ class CheckoutController extends Controller
      */
     public function store(CheckoutRequest $request)
     {
-        $cart = session('cart', []);
-
-        if (empty($cart)) {
+        if ($this->cartService->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
         }
 
-        $products = Product::whereIn('id', array_keys($cart))->get()->keyBy('id');
-
-        // Calculate total
-        $total = 0;
-        foreach ($cart as $productId => $quantity) {
-            if ($products->has($productId)) {
-                $total += $products[$productId]->price * $quantity;
-            }
-        }
+        $cartDetails = $this->cartService->getCartWithDetails();
+        $cart = $this->cartService->getCart();
+        $products = $cartDetails['products'];
+        $total = $cartDetails['total'];
 
         // Handle receipt upload
         $receiptPath = null;
@@ -95,7 +77,7 @@ class CheckoutController extends Controller
         });
 
         // Clear cart
-        session()->forget('cart');
+        $this->cartService->clear();
 
         return redirect()->route('checkout.success')->with('success', 'Your order has been placed successfully!');
     }

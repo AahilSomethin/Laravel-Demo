@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use Illuminate\Support\Facades\Cache;
 
 class StoreController extends Controller
 {
@@ -49,7 +50,11 @@ class StoreController extends Controller
         }
 
         $products = $query->paginate(12)->appends(request()->query());
-        $categories = Category::orderBy('name')->get();
+
+        // Cache categories for 1 hour since they rarely change
+        $categories = Cache::remember('store.categories', 3600, function () {
+            return Category::orderBy('name')->get();
+        });
 
         return view('store.index', compact('products', 'categories'));
     }
