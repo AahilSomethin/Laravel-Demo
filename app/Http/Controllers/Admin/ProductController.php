@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\StoreController;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Category;
@@ -80,6 +81,9 @@ class ProductController extends Controller
 
         Product::create($data);
 
+        // Clear store product cache
+        StoreController::clearProductsCache();
+
         return redirect()->route('admin.products.index')->with('success', 'Product created successfully.');
     }
 
@@ -119,6 +123,9 @@ class ProductController extends Controller
 
         $product->update($data);
 
+        // Clear store product cache
+        StoreController::clearProductsCache();
+
         return redirect()->route('admin.products.index')->with('success', 'Product updated successfully.');
     }
 
@@ -133,6 +140,9 @@ class ProductController extends Controller
         }
 
         $product->delete();
+
+        // Clear store product cache
+        StoreController::clearProductsCache();
 
         return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully.');
     }

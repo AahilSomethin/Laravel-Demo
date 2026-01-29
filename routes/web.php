@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StoreController;
 
@@ -27,6 +28,9 @@ Route::prefix('cart')->name('cart.')->group(function () {
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+
+// Invoice download (no authentication required for customers)
+Route::get('/orders/{order}/invoice', [InvoiceController::class, 'download'])->name('orders.invoice');
 
 Route::get('/dashboard', function () {
     return redirect()->route('admin.products.index');

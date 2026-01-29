@@ -34,6 +34,7 @@ class OrderController extends Controller
             'status' => $order->status,
             'receipt_path' => $order->receipt_path,
             'receipt_url' => $order->receipt_path ? asset('storage/' . $order->receipt_path) : null,
+            'invoice_url' => route('orders.invoice', $order->id),
             'created_at' => $order->created_at->format('M d, Y H:i'),
             'items' => $order->items->map(function ($item) {
                 return [

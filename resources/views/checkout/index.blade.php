@@ -7,6 +7,7 @@
 
     <form action="{{ route('checkout.store') }}" method="POST" enctype="multipart/form-data" x-data="{ paymentMethod: '{{ old('payment_method', 'cash') }}' }">
         @csrf
+        <input type="hidden" name="checkout_token" value="{{ $checkoutToken }}">
 
         <div class="flex flex-col lg:flex-row gap-8">
             <!-- Checkout Form -->
